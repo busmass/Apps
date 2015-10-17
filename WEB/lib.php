@@ -27,8 +27,13 @@ function recupData($ligne, $path, $bdd){
 	$stack=array();
 	$requete = $bdd->query('SELECT * FROM bus WHERE id_ligne='.$ligne.' AND path='.$path.'');
 	while ($donnees = $requete->fetch()){
-		echo 'Bus num. : '.$donnees['id'].' Poids : '.$donnees['poids'].' <br>';
+		
 		viewArret($bdd,$donnees['id']);
+		$poids =$donnees['poids'];
+		$poids /= 10;
+		$poids = $poids -100;
+		$poids= abs($poids);
+		echo 'Capacite utilisee : '.$poids.'%<br>';
 	}
 	
 	
@@ -44,23 +49,7 @@ function viewChoiceLine($bdd){
 
 	while ($donnees = $requete->fetch()){
 		array_push($stack, $donnees['num_ligne'].' '.$donnees['Chemin']);
-
 	}
-
-	// Définition du tableau de couleurs
-/*
-	$arrayCouleurs = array(
-
-	'#ff9900' => 'orange',
-	'#00ff00' => 'vert',
-	'#ff0000' => 'rouge',
-	'#ff00ff' => 'violet',
-	'#0000ff' => 'bleu',
-	'#000000' => 'noir',
-	'#ffffff' => 'blanc',
-	'#ffff00' => 'jaune'
-	);
-*/
 	echo '<form method="post" action="emakina.php">';
 
 	// Variable qui ajoutera l'attribut selected de la liste déroulante
@@ -91,8 +80,6 @@ function viewChoiceLine2($bdd){
 	echo '<select name="line" action="emakina.php">',"n";
 	while ($donnees = $requete->fetch()){
 		  echo '<option value="'.$donnees['idLigne'].'">'.$donnees['num_ligne'].'</option>',"\n";
-		//echo '<option value="'.$donnees['idLigne'].'>'.$donnees['idLigne'].' |  '.$donnees['depart'].' - '.$donnees['terminus'].'</option>',"\n";
-		//echo '<option value="'.$donnees['idLigne'].'x">'.$donnees['idLigne'].' |  '.$donnees['terminus'].' - '.$donnees['depart'].'</option>',"\n";
 	}
 	echo '</select>';
 	echo '
@@ -117,6 +104,68 @@ function viewChoicePath($bdd, $line){
         </form> ';
 }
 
+
+function getLines($bdd){
+	$requete = $bdd->query('SELECT * FROM Ligne ');
+	$lines = array();
+	while ($donnees = $requete->fetch()){
+		$lines[] = $donnees;
+	}
+	return $lines;
+}
+
+function viewLines($lines){
+	$nb=count($lines);
+	echo '<form method="post" action="emakina.php">';
+	echo '<select name="line" action="emakina.php">',"n";
+	for ($i=0; $i < $nb ; $i++) { 
+		echo '<option value="'.$lines[$i]['idLigne'].'">'.$lines[$i]['num_ligne'].'</option>',"\n";
+	}
+	echo '</select>';
+	echo '
+            <input type="submit" value="Submit"/>
+        </form> ';
+}
+
+function viewLines2($lines){
+	$nb=count($lines);
+	for ($i=0; $i < $nb ; $i++) { 
+		$mod=$i % 5;
+		$mod++;
+		echo '	<tr>
+	  				<td class="number'.$mod.'" >'.$lines[$i]['num_ligne'].'</td>
+	  				<td class="btn btn-default btn-block destination">'.$lines[$i]['depart'].'  -</br> '.$lines[$i]['terminus'].'</td>
+				</tr>';
+	}
+}
+
+function getPaths($bdd, $line){
+	$requete = $bdd->query('SELECT * FROM Ligne WHERE idLigne = '.$line.' ');
+	$donnee = $requete->fetch();
+	$path = array();
+	array_push($path, $donnee['depart']);
+	array_push($path, $donnee['terminus']);
+	
+	return $path;
+}
+
+function viewPath($path, $line){
+	//$nb=count($lines);
+	echo 'Choose your path :';
+	echo '<form method="post" action="emakina.php?line='.$line.'">';
+	echo '<select name="path" action="emakina.php?line='.$line.'">',"n";
+	
+		echo '<option value=0>'.$path[0].' - '.$path[1].'</option>',"\n";
+		echo '<option value=1>'.$path[1].' - '.$path[0].'</option>',"\n";
+	
+	echo '</select>';
+	echo '
+            <input type="submit" value="Submit"/>
+        </form> ';
+
+}
+
+
 function viewConection(){
 	echo" <form method='post' action='emakina.php'>
 		  <label for='pseudo'>Pseudo* : </label>"; 
@@ -137,7 +186,7 @@ function conection($bdd,$pseudo, $pass){
 	}
 }
 
-function signUp($bdd,$pseudo, $pass){
+function signUp($bdd,$pseudo, $pass, $mail){
 	$requete = $bdd->query('SELECT * FROM Users ');
 	while ($donnees = $requete->fetch()){
 		if ($donnees['pseudo']==$pseudo) {
@@ -145,8 +194,8 @@ function signUp($bdd,$pseudo, $pass){
 		}
 	}
 	$pass=md5($pass);
-	$requete=$bdd->prepare('INSERT INTO Users SET pseudo=?, pass=? ');
-	$requete->execute(array($pseudo,$pass));
+	$requete=$bdd->prepare('INSERT INTO Users SET pseudo=?, pass=? , mail=?');
+	$requete->execute(array($pseudo,$pass,$mail));
 	return true;
 	
 }
@@ -155,7 +204,20 @@ function viewArret($bdd,$busId){
 	$requete = $bdd->query('SELECT arret FROM bus WHERE id='.$busId.' ');
 	$donnee = $requete->fetch();
 	$arret=$donnee['arret'];
-	echo 'Le bus est entre larret '.$arret.' et larret '.((int)$arret + 1).' <br>';
+	echo 'Le bus est entre larret '.$arret.' et larret '.((int)$arret + 1).' ';
+}
+
+function likeCom($bdd, $pseudo){
+	$requete = $bdd->query('SELECT score FROM Users WHERE pseudo='.$pseudo.' ');
+	$donnee = $requete->fetch();
+	$newScore= $donnee['score'] + 1;
+	$requete=  $bdd->query('UPDATE `as_eb778c54b5aa1fa`.`Users` SET `score`='.$id.' WHERE `pseudo`= '. $pseudo . '');
+}
+
+function getScore($bdd, $pseudo){
+	$requete = $bdd->query('SELECT score FROM Users WHERE pseudo='.$pseudo.' ');
+	$donnee = $requete->fetch();
+	return $donnee['score'];
 }
 
 ?>
