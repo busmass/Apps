@@ -28,15 +28,27 @@ function recupData($ligne, $path, $bdd){
 	$requete = $bdd->query('SELECT * FROM bus WHERE id_ligne='.$ligne.' AND path='.$path.'');
 	while ($donnees = $requete->fetch()){
 		
-		viewArret($bdd,$donnees['id']);
+		viewArret($bdd,$donnees['id'],$ligne);
 		$poids =$donnees['poids'];
 		$poids /= 10;
 		$poids = $poids -100;
 		$poids= abs($poids);
-		echo 'Capacite utilisee : '.$poids.'%<br>';
+		echo '	
+	  				
+		 			<td> Capacite utilisee : '.$poids.'%</td>
+		 		</tr>';
 	}
-	
-	
+
+}
+
+
+function viewArret($bdd,$busId, $line){
+	$requete = $bdd->query('SELECT arret FROM bus WHERE id='.$busId.' ');
+	$donnee = $requete->fetch();
+	$arret=$donnee['arret'];
+	echo '<tr>	
+				<td class="number1" >'.$line.'</td>
+				<td class="btn btn-default btn-block destination" > Le bus est entre larret '.$arret.' et larret '.((int)$arret + 1).' </td>';
 }
 
 function viewChoiceLine($bdd){
@@ -134,9 +146,11 @@ function viewLines2($lines){
 		$mod++;
 		echo '	<tr>
 	  				<td class="number'.$mod.'" >'.$lines[$i]['num_ligne'].'</td>
-	  				<td class="btn btn-default btn-block destination">'.$lines[$i]['depart'].'  -</br> '.$lines[$i]['terminus'].'</td>
+	  				<td class="btn btn-default btn-block destination" ><a href="index.php?line='.$lines[$i]['idLigne'].'">'.$lines[$i]['depart'].'  -</br> '.$lines[$i]['terminus'].'</a></td>
 				</tr>';
 	}
+	//<td class="btn btn-default btn-block destination" onclick="function_js_ligne('.json_encode($lines[$i]).')">'.$lines[$i]['depart'].'  -</br> '.$lines[$i]['terminus'].'</td>
+
 }
 
 function getPaths($bdd, $line){
@@ -149,11 +163,11 @@ function getPaths($bdd, $line){
 	return $path;
 }
 
-function viewPath($path, $line){
+function viewPat($path, $line){
 	//$nb=count($lines);
 	echo 'Choose your path :';
-	echo '<form method="post" action="emakina.php?line='.$line.'">';
-	echo '<select name="path" action="emakina.php?line='.$line.'">',"n";
+	echo '<form method="post" action="index.php?line='.$line.'">';
+	echo '<select name="path" action="index.php?line='.$line.'">',"n";
 	
 		echo '<option value=0>'.$path[0].' - '.$path[1].'</option>',"\n";
 		echo '<option value=1>'.$path[1].' - '.$path[0].'</option>',"\n";
@@ -164,6 +178,18 @@ function viewPath($path, $line){
         </form> ';
 
 }
+
+function viewPath($path, $line){
+	//$nb=count($lines);
+	echo 'Choose your path :';
+		echo '	<tr>
+	  				<td class="number1" >'.$line.'</td>
+	  				<td class="btn btn-default btn-block destination" ><a href="index.php?line='.$line.'&path=0">'.$path[0].'  -</br> '.$path[1].'</a></td>
+	  				<td class="btn btn-default btn-block destination" ><a href="index.php?line='.$line.'&path=1">'.$path[1].'  -</br> '.$path[0].'</a></td>
+				</tr>';
+	}
+
+
 
 
 function viewConection(){
@@ -200,12 +226,6 @@ function signUp($bdd,$pseudo, $pass, $mail){
 	
 }
 
-function viewArret($bdd,$busId){
-	$requete = $bdd->query('SELECT arret FROM bus WHERE id='.$busId.' ');
-	$donnee = $requete->fetch();
-	$arret=$donnee['arret'];
-	echo 'Le bus est entre larret '.$arret.' et larret '.((int)$arret + 1).' ';
-}
 
 function likeCom($bdd, $pseudo){
 	$requete = $bdd->query('SELECT score FROM Users WHERE pseudo='.$pseudo.' ');

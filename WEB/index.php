@@ -1,4 +1,5 @@
   <!DOCTYPE html>
+
   <?php
   include "lib.php";
   $bdd=coBdd();
@@ -31,8 +32,27 @@
             <table class="table table-striped">
                     <tbody>
                     <?php
-                    $lines=getLines($bdd);
-                    viewLines2($lines);
+                    if (isset($_GET['path'])) {
+                      $line=$_GET['line'];
+                      $poids=recupData($line,$_GET['path'], $bdd);
+
+                    }
+                    else{
+
+                      if (isset($_GET['line'])) {
+                          $path=getPaths($bdd,$_GET['line']);
+                          viewPath($path,$_GET['line']);
+                      }  
+                      else{
+
+                        $lines=getLines($bdd);
+                        viewLines2($lines);
+                      }
+                    }                 
+
+
+ 
+
                     ?>
               </tbody>
             </table>
@@ -62,8 +82,6 @@
   <script src='https://ajax.googleapis.com/ajax/libs/angularjs/1.4.6/angular-messages.min.js'></script>
   <script src='https://gitcdn.xyz/repo/angular/bower-material/v0.11.4/angular-material.js'></script>
   <script src='https://s3-us-west-2.amazonaws.com/s.cdpn.io/t-114/assets-cache.js'></script>
-
-
 
 
 
