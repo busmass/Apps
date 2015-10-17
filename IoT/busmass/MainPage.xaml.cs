@@ -50,11 +50,11 @@ namespace busmass
         public MainPage()
         {
             this.InitializeComponent();
-
+            
             // initialise database
             try
             {
-                db = new MySqlConnection("server=us-cdbr-azure-central-a.cloudapp.net;uid=b0a941f833069a;pwd=<pass>;database=as_eb778c54b5aa1fa;SslMode=None;charset=utf8;");
+                db = new MySqlConnection("server=us-cdbr-azure-central-a.cloudapp.net;uid=b0a941f833069a;pwd=41561c96;database=as_eb778c54b5aa1fa;SslMode=None;charset=utf8;");
                 db.Open();
             }
             catch (Exception e)
@@ -104,6 +104,15 @@ namespace busmass
             {
                 CurrentWeight = LightSensor.SensorValue();
                 dbSet(CurrentLine);
+                try
+                {
+                    Display.SetText("Bussmass\nBus Weight : " + CurrentWeight.ToString() + "...").SetBacklightRgb(0, 255, 255);
+                    WeightText.Text = CurrentWeight.ToString();
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine(ex.Message);
+                }
             }
             catch (Exception ex)
             {
@@ -113,15 +122,6 @@ namespace busmass
 
         public void tick(object sender, object e)
         {
-            try
-            {
-                Display.SetText(CurrentWeight.ToString()).SetBacklightRgb(0, 255, 255);
-                WeightText.Text = CurrentWeight.ToString();
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine(ex.Message);
-            }
             try
             {
                 if (Button.CurrentState == SensorStatus.On)
